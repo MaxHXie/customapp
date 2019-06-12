@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" content="width=device-width, initial-scale=1.0">
+    <title>Accenture - Result</title>
+    <link href="/style.css" rel="stylesheet" type = "text/css">
+    <link href="/bootstrap/css/bootstrap.css" rel="stylesheet" type = "text/css">
+    <link href="/bootstrap/css/bootstrap-grid.css" rel="stylesheet" type = "text/css">
+    <link href="/bootstrap/css/bootstrap-reboot.css" rel="stylesheet" type = "text/css">
+    <script src="myCode.js"></script>
+    <script src="charts/Chart.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+</head>
+<body>
+<section class="bgimage">
+    <div class="col-sm nopadding">
+        <a class="weatherwidget-io" href="https://forecast7.com/en/59d3318d07/stockholm/" data-label_1="STOCKHOLM" data-label_2="WEATHER" data-theme="dark" >STOCKHOLM WEATHER</a>
+    </div>
+
+    <div class="alert alert-danger alert_already_voted_today" role="alert">
+        Well darn it! You have already voted today.
+    </div>
+
+    <div class="col-sm container-fluid nopadding">
+        <div class="col-sm text-center">
+            <h1>Average feeling at Accenture today!</h1>
+        </div>
+    </div>
+
+    <canvas id="bar-chart-horizontal" width="10" height="2" onload="createGraph()"></canvas>
+
+
+    <script>
+        $(document).ready(function() {
+            $('.alert_already_voted_today').hide();
+            var status = findGetParameter('status');
+            if(status === 'already_voted_today'){
+                $('.alert_already_voted_today').show();
+            }
+            presentData(true);
+        });
+        function presentData(animation) {
+            var voteOne = 0;
+            var voteTwo = 0;
+            var voteThree = 0;
+            var voteFour = 0;
+            var voteFive = 0;
+            $.ajax({
+                url: '/api/v1/vote/allVotes',
+                type: "GET",
+                async: false,
+                success: function (result) {
+                    console.log(result);
+                    var resultLength = result.length;
+                    for (var i = 0; i < resultLength; i++) {
+                        console.log(result[i]['happyScore']);
+                        switch (result[i]['happyScore']) {
+                            case 1:
+                                voteOne++;
+                                break;
+                            case 2:
+                                voteTwo++;
+                                break;
+                            case 3:
+                                voteThree++;
+                                break;
+                            case 4:
+                                voteFour++;
+                                break;
+                            case 5:
+                                voteFive++;
+                                break;
+                            default:
+                                console.log("Invalid vote");
+                        }
+                    }
+                },
+                error: function (error) {
+                    console.log(error);
+                }
+            });
+            if (animation === false){
+                new Chart(document.getElementById("bar-chart-horizontal"), {
+                    type: 'horizontalBar',
+                    data: {
+                        labels: ["Perfect", "Good", "Moderate", "Bad", "Very bad"],
+                        label: {
+                            fill: '#fff'
+                        },
+                        datasets: [
+                            {
+                                label: "Number of votes",
+                                backgroundColor: ["#3e95cd", "#8e5ea2", "#3cba9f", "#e8c3b9", "#c45850"],
+                                data: [voteFive, voteFour, voteThree, voteTwo, voteOne]
+                            }
+                        ]
+                    },
+                    options: {
+                        animation: {
+                            duration: 0
+                        },
+                        scales: {
+                            xAxes: [{
+                                ticks: {
+                                    beginAtZero: true
+                                }
+                            }]
+                        },
+                        legend: {display: false},
+                        title: {
+                            display: false,
+                            text: 'Predicted world population (millions) in 2050'
+                        }
+                    }
+                });
+            }
+            else{
+                new Chart(document.getElementById("bar-chart-horizontal"), {
+                    type: 'horizontalBar',
+                    data: {
+                        labels: ["Perfect", "Good", "Moderate", "Bad", "Very bad"],
+                        label: {
+                            fill: '#fff'
+                        },
+                        datasets: [
+                            {
+                                label: "Number of votes",
+                                backgroundColor: ["#3e95cd", "#8e5ea2", "#3cba9f", "#e8c3b9", "#c45850"],
+                                data: [voteFive, voteFour, voteThree, voteTwo, voteOne]
+                            }
+                        ]
+                    },
+                    options: {
+                        scales: {
+                            xAxes: [{
+                                ticks: {
+                                    beginAtZero: true
+                                }
+                            }]
+                        },
+                        legend: {display: false},
+                        title: {
+                            display: false,
+                            text: 'Predicted world population (millions) in 2050'
+                        }
+                    }
+                });
+            }
+        }
+        function findGetParameter(parameterName) {
+            var result = null,
+                tmp = [];
+            location.search
+                .substr(1)
+                .split("&")
+                .forEach(function (item) {
+                    tmp = item.split("=");
+                    if (tmp[0] === parameterName) result = decodeURIComponent(tmp[1]);
+                });
+            return result;
+        }
+        var interval = setInterval(function(){presentData(false);}, 1000);
+    </script>
+</section>
+</body>
+</html>
